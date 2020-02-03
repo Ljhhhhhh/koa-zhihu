@@ -1,13 +1,13 @@
 {
   "name": "zhihu-api",
   "version": "1.0.0",
-  "description": "防知乎 RESTful API",
+  "description": "仿知乎 RESTful API",
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production pm2 start ./app --name koa-zhihu",
     "dev": "nodemon app"
   },
-  "author": "lewis617",
+  "author": "ljhhhhhh",
   "license": "ISC",
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
