@@ -1,4 +1,5 @@
 const Answer = require('../models/answers');
+const success = require('../models/request-success');
 
 class AnswersCtl {
   async find(ctx) {
@@ -6,9 +7,10 @@ class AnswersCtl {
     const page = Math.max(ctx.query.page * 1, 1) - 1;
     const perPage = Math.max(per_page * 1, 1);
     const q = new RegExp(ctx.query.q);
-    ctx.body = await Answer
+    const data = await Answer
       .find({ content: q, questionId: ctx.params.questionId })
       .limit(perPage).skip(page * perPage);
+    ctx.body = success(data);
   }
   async checkAnswerExist(ctx, next) {
     const answer = await Answer.findById(ctx.params.id).select('+answerer');
@@ -33,7 +35,7 @@ class AnswersCtl {
     const answerer = ctx.state.user._id;
     const { questionId } = ctx.params;
     const answer = await new Answer({ ...ctx.request.body, answerer, questionId }).save();
-    ctx.body = answer;
+    ctx.body = success(answer);
   }
   async checkAnswerer(ctx, next) {
     const { answer } = ctx.state;
@@ -45,7 +47,7 @@ class AnswersCtl {
       content: { type: 'string', required: false },
     });
     await ctx.state.answer.update(ctx.request.body);
-    ctx.body = ctx.state.answer;
+    ctx.body = success(ctx.state.answer);
   }
   async delete(ctx) {
     await Answer.findByIdAndRemove(ctx.params.id);

@@ -3,15 +3,17 @@ const User = require('../models/users');
 const Question = require('../models/questions');
 const Answer = require('../models/answers');
 const { secret } = require('../config');
+const success = require('../models/request-success');
 
 class UsersCtl {
   async find(ctx) {
     const { per_page = 10 } = ctx.query;
     const page = Math.max(ctx.query.page * 1, 1) - 1;
     const perPage = Math.max(per_page * 1, 1);
-    ctx.body = await User
+    const data = await User
       .find({ name: new RegExp(ctx.query.q) })
       .limit(perPage).skip(page * perPage);
+    ctx.body = success(data);
   }
   async findById(ctx) {
     const { fields = '' } = ctx.query;
@@ -28,7 +30,7 @@ class UsersCtl {
     const user = await User.findById(ctx.params.id).select(selectFields)
       .populate(populateStr);
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user;
+    ctx.body = success(user);
   }
   async create(ctx) {
     ctx.verifyParams({
@@ -39,7 +41,7 @@ class UsersCtl {
     const repeatedUser = await User.findOne({ name });
     if (repeatedUser) { ctx.throw(409, '用户已经占用'); }
     const user = await new User(ctx.request.body).save();
-    ctx.body = user;
+    ctx.body = success(user);
   }
   async checkOwner(ctx, next) {
     if (ctx.params.id !== ctx.state.user._id) { ctx.throw(403, '没有权限'); }
@@ -59,7 +61,7 @@ class UsersCtl {
     });
     const user = await User.findByIdAndUpdate(ctx.params.id, ctx.request.body);
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user;
+    ctx.body = success(user);
   }
   async delete(ctx) {
     const user = await User.findByIdAndRemove(ctx.params.id);
@@ -75,16 +77,16 @@ class UsersCtl {
     if (!user) { ctx.throw(401, '用户名或密码不正确'); }
     const { _id, name } = user;
     const token = jsonwebtoken.sign({ _id, name }, secret, { expiresIn: '1d' });
-    ctx.body = { token };
+    ctx.body = success({ token });
   }
   async listFollowing(ctx) {
     const user = await User.findById(ctx.params.id).select('+following').populate('following');
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user.following;
+    ctx.body = success(user.following);
   }
   async listFollowers(ctx) {
     const users = await User.find({ following: ctx.params.id });
-    ctx.body = users;
+    ctx.body = success(users);
   }
   async checkUserExist(ctx, next) {
     const user = await User.findById(ctx.params.id);
@@ -111,7 +113,7 @@ class UsersCtl {
   async listFollowingTopics(ctx) {
     const user = await User.findById(ctx.params.id).select('+followingTopics').populate('followingTopics');
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user.followingTopics;
+    ctx.body = success(user.followingTopics);
   }
   async followTopic(ctx) {
     const me = await User.findById(ctx.state.user._id).select('+followingTopics');
@@ -132,12 +134,12 @@ class UsersCtl {
   }
   async listQuestions(ctx) {
     const questions = await Question.find({ questioner: ctx.params.id });
-    ctx.body = questions;
+    ctx.body = success(questions);
   }
   async listLikingAnswers(ctx) {
     const user = await User.findById(ctx.params.id).select('+likingAnswers').populate('likingAnswers');
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user.likingAnswers;
+    ctx.body = success(user.likingAnswers);
   }
   async likeAnswer(ctx, next) {
     const me = await User.findById(ctx.state.user._id).select('+likingAnswers');
@@ -162,7 +164,7 @@ class UsersCtl {
   async listDislikingAnswers(ctx) {
     const user = await User.findById(ctx.params.id).select('+dislikingAnswers').populate('dislikingAnswers');
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user.dislikingAnswers;
+    ctx.body = success(user.dislikingAnswers);
   }
   async dislikeAnswer(ctx, next) {
     const me = await User.findById(ctx.state.user._id).select('+dislikingAnswers');
@@ -185,7 +187,7 @@ class UsersCtl {
   async listCollectingAnswers(ctx) {
     const user = await User.findById(ctx.params.id).select('+collectingAnswers').populate('collectingAnswers');
     if (!user) { ctx.throw(404, '用户不存在'); }
-    ctx.body = user.collectingAnswers;
+    ctx.body = success(user.collectingAnswers);
   }
   async collectAnswer(ctx, next) {
     const me = await User.findById(ctx.state.user._id).select('+collectingAnswers');

@@ -1,4 +1,5 @@
 const Comment = require('../models/comments');
+const success = require('../models/request-success');
 
 class CommentsCtl {
   async find(ctx) {
@@ -8,10 +9,11 @@ class CommentsCtl {
     const q = new RegExp(ctx.query.q);
     const { questionId, answerId } = ctx.params;
     const { rootCommentId } = ctx.query;
-    ctx.body = await Comment
+    const data = await Comment
       .find({ content: q, questionId, answerId, rootCommentId })
       .limit(perPage).skip(page * perPage)
       .populate('commentator replyTo');
+    ctx.body = success(data);
   }
   async checkCommentExist(ctx, next) {
     const comment = await Comment.findById(ctx.params.id).select('+commentator');
@@ -29,7 +31,7 @@ class CommentsCtl {
     const { fields = '' } = ctx.query;
     const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('');
     const comment = await Comment.findById(ctx.params.id).select(selectFields).populate('commentator');
-    ctx.body = comment;
+    ctx.body = success(comment);
   }
   async create(ctx) {
     ctx.verifyParams({
@@ -40,7 +42,7 @@ class CommentsCtl {
     const commentator = ctx.state.user._id;
     const { questionId, answerId } = ctx.params;
     const comment = await new Comment({ ...ctx.request.body, commentator, questionId, answerId }).save();
-    ctx.body = comment;
+    ctx.body = success(comment);
   }
   async checkCommentator(ctx, next) {
     const { comment } = ctx.state;
@@ -53,7 +55,7 @@ class CommentsCtl {
     });
     const { content } = ctx.request.body;
     await ctx.state.comment.update({ content });
-    ctx.body = ctx.state.comment;
+    ctx.body = success(ctx.state.comment);
   }
   async delete(ctx) {
     await Comment.findByIdAndRemove(ctx.params.id);

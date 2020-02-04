@@ -1,4 +1,5 @@
 const Question = require('../models/questions');
+const success = require('../models/request-success');
 
 class QuestionsCtl {
   async find(ctx) {
@@ -6,9 +7,11 @@ class QuestionsCtl {
     const page = Math.max(ctx.query.page * 1, 1) - 1;
     const perPage = Math.max(per_page * 1, 1);
     const q = new RegExp(ctx.query.q);
-    ctx.body = await Question
+    const data = await Question
       .find({ $or: [{ title: q }, { description: q }] })
       .limit(perPage).skip(page * perPage);
+
+    ctx.body = success(data)
   }
   async checkQuestionExist(ctx, next) {
     const question = await Question.findById(ctx.params.id).select('+questioner');
@@ -20,7 +23,8 @@ class QuestionsCtl {
     const { fields = '' } = ctx.query;
     const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('');
     const question = await Question.findById(ctx.params.id).select(selectFields).populate('questioner topics');
-    ctx.body = question;
+    const data = question;
+    ctx.body = success(data);
   }
   async create(ctx) {
     ctx.verifyParams({
@@ -28,7 +32,8 @@ class QuestionsCtl {
       description: { type: 'string', required: false },
     });
     const question = await new Question({ ...ctx.request.body, questioner: ctx.state.user._id }).save();
-    ctx.body = question;
+    const data = question;
+    ctx.body = success(data);
   }
   async checkQuestioner(ctx, next) {
     const { question } = ctx.state;
@@ -41,7 +46,7 @@ class QuestionsCtl {
       description: { type: 'string', required: false },
     });
     await ctx.state.question.update(ctx.request.body);
-    ctx.body = ctx.state.question;
+    ctx.body = success(ctx.state.question);
   }
   async delete(ctx) {
     await Question.findByIdAndRemove(ctx.params.id);
