@@ -7,11 +7,15 @@ class QuestionsCtl {
     const page = Math.max(ctx.query.page * 1, 1) - 1;
     const perPage = Math.max(per_page * 1, 1);
     const q = new RegExp(ctx.query.q);
-    const data = await Question
+    const records = await Question
       .find({ $or: [{ title: q }, { description: q }] })
       .limit(perPage).skip(page * perPage);
-
-    ctx.body = success(data)
+    const total = await Question
+    .count({ $or: [{ title: q }, { description: q }] })
+    ctx.body = success({
+      total,
+      records
+    })
   }
   async checkQuestionExist(ctx, next) {
     const question = await Question.findById(ctx.params.id).select('+questioner');
