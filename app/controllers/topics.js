@@ -21,7 +21,8 @@ class TopicsCtl {
   async findById(ctx) {
     const { fields = '' } = ctx.query;
     const selectFields = fields.split(';').filter(f => f).map(f => ' +' + f).join('');
-    const topic = await Topic.findById(ctx.params.id).select(selectFields);
+    // const topic = await Topic.findById(ctx.params.id).select(selectFields);
+    const topic = await Topic.findById(ctx.params.id);
     ctx.body = success(topic);
   }
   async create(ctx) {
