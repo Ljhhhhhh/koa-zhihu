@@ -7,10 +7,15 @@ class AnswersCtl {
     const page = Math.max(ctx.query.page * 1, 1) - 1;
     const perPage = Math.max(per_page * 1, 1);
     const q = new RegExp(ctx.query.q);
-    const data = await Answer
+    const records = await Answer
       .find({ content: q, questionId: ctx.params.questionId })
       .limit(perPage).skip(page * perPage);
-    ctx.body = success(data);
+    const data = await Answer
+    .count({ content: q, questionId: ctx.params.questionId })
+    ctx.body = success({
+      total,
+      records
+    });
   }
   async checkAnswerExist(ctx, next) {
     const answer = await Answer.findById(ctx.params.id).select('+answerer');
