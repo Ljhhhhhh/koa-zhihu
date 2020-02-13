@@ -10,7 +10,7 @@ class AnswersCtl {
     const records = await Answer
       .find({ content: q, questionId: ctx.params.questionId })
       .limit(perPage).skip(page * perPage);
-    const data = await Answer
+    const total = await Answer
     .count({ content: q, questionId: ctx.params.questionId })
     ctx.body = success({
       total,
