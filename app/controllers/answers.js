@@ -9,7 +9,7 @@ class AnswersCtl {
     const q = new RegExp(ctx.query.q);
     const records = await Answer
       .find({ content: q, questionId: ctx.params.questionId })
-      .limit(perPage).skip(page * perPage);
+      .limit(perPage).skip(page * perPage).populate('user');
     const total = await Answer
     .count({ content: q, questionId: ctx.params.questionId })
     ctx.body = success({
