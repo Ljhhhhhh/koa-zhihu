@@ -8,8 +8,8 @@ class AnswersCtl {
     const perPage = Math.max(per_page * 1, 1);
     const q = new RegExp(ctx.query.q);
     const records = await Answer
-      .find({ content: q, questionId: ctx.params.questionId })
-      .limit(perPage).skip(page * perPage).populate('users');
+      .find({ content: q, questionId: ctx.params.questionId }).populate('answerer')
+      .limit(perPage).skip(page * perPage)
     const total = await Answer
     .count({ content: q, questionId: ctx.params.questionId })
     ctx.body = success({
